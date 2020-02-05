@@ -19,7 +19,7 @@ import static edu.msudenver.mnewma12.server.Computer.ID_TO_COMPUTER;
 
 public class InventoryClient {
 
-    public static final String computerStr = "ID Description\n" +
+    private static final String computerStr = "ID Description\n" +
             COMPUTERS.stream()
             .map(comp -> comp.ID + "  " + comp.description)
             .collect(Collectors.joining("\n"));
@@ -41,7 +41,7 @@ public class InventoryClient {
     private transient long startTime, endTime;
     private transient Gson gson;
 
-    InventoryClient(String serverDNSName) throws SocketException, IOException {
+    InventoryClient(String serverDNSName) throws IOException {
         sysIn = new BufferedReader(new InputStreamReader(System.in));
         udpSocket = new DatagramSocket();
         serverAddress = InetAddress.getByName(serverDNSName);
@@ -55,8 +55,10 @@ public class InventoryClient {
         while(true) {
             fromUser = getLine();
             sendRequest(fromUser);
+            // block
             fromServer = getResponse();
             parseResponse(fromServer);
+
             if (!shouldContinue()) break;
         }
 
@@ -123,6 +125,5 @@ public class InventoryClient {
         Computer computer = gson.fromJson(fromServer, Computer.class);
         System.out.println("\nFOUND: " + computer);
         System.out.print("  RTT of Query: " + (endTime - startTime) + " nanoseconds.\n\n");
-
     }
 }

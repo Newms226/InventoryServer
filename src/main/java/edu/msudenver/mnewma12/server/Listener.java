@@ -7,7 +7,7 @@ import java.net.SocketException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
-public class Listener {
+class Listener {
 
     private final DatagramSocket serverSocket;
 
@@ -21,13 +21,21 @@ public class Listener {
         return accept(clientPacket);
     }
 
-    public DatagramPacket accept(DatagramPacket clientPacket) throws IOException {
+    private DatagramPacket accept(DatagramPacket clientPacket) throws IOException {
         serverSocket.receive(clientPacket);
         return clientPacket;
     }
 
-    public Future<DatagramPacket> acceptAsync() throws IOException {
+    public Future<DatagramPacket> acceptAsync() {
         return new FutureTask<>(this::accept);
+    }
+
+    public void send(DatagramPacket client, String message) throws IOException {
+        System.out.println("MSG: " + message);
+        byte[] buf = message.getBytes();
+        DatagramPacket p = new DatagramPacket(buf, buf.length,
+                client.getAddress(), client.getPort());
+        serverSocket.send(p);
     }
 
 

@@ -1,6 +1,6 @@
 package edu.msudenver.mnewma12.server;
 
-public class ServerCli {
+class ServerCli {
 
     public ServerCli() {}
 

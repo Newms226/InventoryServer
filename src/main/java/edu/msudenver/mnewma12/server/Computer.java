@@ -23,9 +23,9 @@ public class Computer {
 
     public String description;
 
-    public double price;
+    private double price;
 
-    public int count;
+    private int count;
 
     public Computer() {}
 

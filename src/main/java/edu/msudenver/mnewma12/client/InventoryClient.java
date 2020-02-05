@@ -9,39 +9,46 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static edu.msudenver.mnewma12.core.Config.ASSIGNED_PORT;
 import static edu.msudenver.mnewma12.server.Computer.COMPUTERS;
 import static edu.msudenver.mnewma12.server.Computer.ID_TO_COMPUTER;
 
-public class InventoryClient {
+class InventoryClient {
 
     private static final String computerStr = "ID Description\n" +
             COMPUTERS.stream()
             .map(comp -> comp.ID + "  " + comp.description)
             .collect(Collectors.joining("\n"));
 
-    public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: java UDPClient <hostname>");
-            return;
-        }
+//    public static void main(String[] args) throws IOException {
+//        if (args.length != 1) {
+//            System.out.println("Usage: java UDPClient <hostname>");
+//            return;
+//        }
+//
+//        InventoryClient client = new InventoryClient(args[0]);
+//        client.run();
+//    }
 
-        InventoryClient client = new InventoryClient(args[0]);
-        client.run();
+    public static void main(String[] args) throws IOException {
+        InventoryClient client = new InventoryClient("localhost");
+        for(int j = 0; j < 1000; j++) {
+            for (int i = 0; i < 6; i++) {
+                client.sendRequest(i+ "");
+            }
+        }
     }
 
 
     private DatagramSocket udpSocket;
-    private BufferedReader sysIn;
+    private final BufferedReader sysIn;
     private InetAddress serverAddress; // TODO final for security reasons?
     private transient long startTime, endTime;
     private transient Gson gson;
 
-    InventoryClient(String serverDNSName) throws IOException {
+    private InventoryClient(String serverDNSName) throws IOException {
         sysIn = new BufferedReader(new InputStreamReader(System.in));
         udpSocket = new DatagramSocket();
         serverAddress = InetAddress.getByName(serverDNSName);
@@ -65,7 +72,7 @@ public class InventoryClient {
         udpSocket.close();
     }
 
-    String getLine() throws IOException {
+    private String getLine() throws IOException {
         while (true) {
             try {
                 System.out.print("Please enter an id:\n>");
@@ -87,7 +94,7 @@ public class InventoryClient {
         }
     }
 
-    void sendRequest(String fromUser) throws IOException {
+    private void sendRequest(String fromUser) throws IOException {
         byte[] buf = fromUser.getBytes();
         DatagramPacket udpPacket =
                 new DatagramPacket(buf, buf.length, serverAddress, ASSIGNED_PORT);
@@ -96,7 +103,7 @@ public class InventoryClient {
     }
 
     /** blocking */
-    String getResponse() throws IOException {
+    private String getResponse() throws IOException {
         byte[] buf2 = new byte[256];
         DatagramPacket packet = new DatagramPacket(buf2, buf2.length);
         udpSocket.receive(packet);
@@ -111,7 +118,7 @@ public class InventoryClient {
             String line = sysIn.readLine();
             System.out.println("User Input: " + line);
 
-            if (line == null || line.toLowerCase().startsWith("y")) {
+            if (line.equals("") || line.toLowerCase().startsWith("y")) {
                 return true;
             } else if (line.toLowerCase().startsWith("n")) {
                 return false;

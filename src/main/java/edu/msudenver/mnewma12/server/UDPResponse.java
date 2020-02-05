@@ -3,7 +3,7 @@ package edu.msudenver.mnewma12.server;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
-public class UDPResponse {
+class UDPResponse {
 
     private DatagramPacket client;
 

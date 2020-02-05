@@ -1,23 +1,17 @@
 package edu.msudenver.mnewma12.server;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import static edu.msudenver.mnewma12.core.Config.ASSIGNED_PORT;
-
 import com.google.gson.Gson;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.SocketException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static edu.msudenver.mnewma12.core.Config.ASSIGNED_PORT;
 import static edu.msudenver.mnewma12.server.Computer.ID_TO_COMPUTER;
 
-public class InventoryServer {
+class InventoryServer {
 
     public static void main(String[] args) throws SocketException {
         Listener listener = new Listener(ASSIGNED_PORT);
@@ -27,18 +21,53 @@ public class InventoryServer {
         while(morePackets) {
             try {
                 DatagramPacket packet = listener.accept();
-                exec.execute(respondTo(packet));
+                exec.execute(() -> {
+                    try {
+                        parse(packet, listener);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
+                morePackets = false;
             }
         }
     }
 
-    public static Runnable respondTo(DatagramPacket client) {
-        return null;
+    private static void parse(DatagramPacket client, Listener listener)
+            throws NumberFormatException, IOException {
+        String requestStr = new String(client.getData()).trim();
+//        System.out.println("REQUEST: " + requestStr);
+        Computer comp = getComp(requestStr);
+//        System.out.println("COMPUTER: " + comp);
+
+        if (comp != null) {
+            send200(client, listener, comp);
+        } else {
+            send404(client, listener, requestStr);
+        }
+    }
+
+    private static Computer getComp(String reqKey) {
+        int clientRequest = Integer.parseInt(reqKey);
+//        System.out.println(ID_TO_COMPUTER);
+        return ID_TO_COMPUTER.get(clientRequest);
     }
 
     private static final Gson gson = new Gson();
+
+    private static void send200(DatagramPacket client, Listener listener,
+                                Computer comp) throws IOException
+    {
+        listener.send(client, gson.toJson(comp));
+    }
+
+    private static void send404(DatagramPacket client, Listener listener,
+                                String requestStr) throws IOException
+    {
+        listener.send(client,"Not found: " + requestStr);
+    }
 }
 //
 //    public static void main(String[] args) throws SocketException {

@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static edu.msudenver.mnewma12.core.Config.ASSIGNED_PORT;
@@ -17,6 +19,26 @@ import static edu.msudenver.mnewma12.server.Computer.ID_TO_COMPUTER;
 
 public class InventoryServer {
 
+    public static void main(String[] args) throws SocketException {
+        Listener listener = new Listener(ASSIGNED_PORT);
+        ExecutorService exec = Executors.newCachedThreadPool();
+        boolean morePackets = true;
+
+        while(morePackets) {
+            try {
+                DatagramPacket packet = listener.accept();
+                exec.execute(respondTo(packet));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static Runnable respondTo(DatagramPacket client) {
+        return null;
+    }
+
+    private static final Gson gson = new Gson();
 }
 //
 //    public static void main(String[] args) throws SocketException {
@@ -110,4 +132,4 @@ public class InventoryServer {
 
 
 
-}
+//}

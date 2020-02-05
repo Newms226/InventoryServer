@@ -22,24 +22,24 @@ class InventoryClient {
             .map(comp -> comp.ID + "  " + comp.description)
             .collect(Collectors.joining("\n"));
 
-//    public static void main(String[] args) throws IOException {
-//        if (args.length != 1) {
-//            System.out.println("Usage: java UDPClient <hostname>");
-//            return;
-//        }
-//
-//        InventoryClient client = new InventoryClient(args[0]);
-//        client.run();
-//    }
-
     public static void main(String[] args) throws IOException {
-        InventoryClient client = new InventoryClient("localhost");
-        for(int j = 0; j < 1000; j++) {
-            for (int i = 0; i < 6; i++) {
-                client.sendRequest(i+ "");
-            }
+        if (args.length != 1) {
+            System.out.println("Usage: java UDPClient <hostname>");
+            return;
         }
+
+        InventoryClient client = new InventoryClient(args[0]);
+        client.run();
     }
+
+//    public static void main(String[] args) throws IOException {
+//        InventoryClient client = new InventoryClient("localhost");
+//        for(int j = 0; j < 1000; j++) {
+//            for (int i = 0; i < 6; i++) {
+//                client.sendRequest(i+ "");
+//            }
+//        }
+//    }
 
 
     private DatagramSocket udpSocket;

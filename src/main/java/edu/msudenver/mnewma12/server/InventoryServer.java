@@ -18,9 +18,12 @@ class InventoryServer {
         ExecutorService exec = Executors.newCachedThreadPool();
         boolean morePackets = true;
 
+        System.out.println("Waiting on port " + ASSIGNED_PORT);
         while(morePackets) {
             try {
+//                System.out.println("Waiting inside runnable..");
                 DatagramPacket packet = listener.accept();
+//                System.out.println("Found!");
                 exec.execute(() -> {
                     try {
                         parse(packet, listener);

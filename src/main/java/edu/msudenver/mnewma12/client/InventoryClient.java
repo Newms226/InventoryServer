@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import static edu.msudenver.mnewma12.core.Config.ASSIGNED_PORT;
@@ -17,20 +20,37 @@ import static edu.msudenver.mnewma12.server.Computer.ID_TO_COMPUTER;
 
 class InventoryClient {
 
-    private static final String computerStr = "ID Description\n" +
-            COMPUTERS.stream()
-            .map(comp -> comp.ID + "  " + comp.description)
-            .collect(Collectors.joining("\n"));
+
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: java UDPClient <hostname>");
-            return;
-        }
+        String dns = (args.length >= 1) ? args[0] : getDNS();
 
-        InventoryClient client = new InventoryClient(args[0]);
+        System.out.println("Found DNS/IP '" + dns + "'");
+        InventoryClient client = new InventoryClient(dns);
         client.run();
     }
+
+    private static String getDNS() {
+        String input;
+        System.out.print("Did not find DNS/IP in command line args.");
+        Scanner scan = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Please enter a DNS or IP Address:");
+            input = scan.nextLine();
+            if (input == null)
+                System.out.println("Cannot be null");
+            else if (input.equals(""))
+                System.out.println("Cannot be empty");
+            else
+                return input;
+        }
+    }
+
+    private static final String computerStr = "ID Description\n" +
+            COMPUTERS.stream()
+                    .map(comp -> comp.ID + "  " + comp.description)
+                    .collect(Collectors.joining("\n"));
 
 //    public static void main(String[] args) throws IOException {
 //        InventoryClient client = new InventoryClient("localhost");
@@ -47,12 +67,14 @@ class InventoryClient {
     private InetAddress serverAddress; // TODO final for security reasons?
     private transient long startTime, endTime;
     private transient Gson gson;
+    private NumberFormat fmt;
 
     private InventoryClient(String serverDNSName) throws IOException {
         sysIn = new BufferedReader(new InputStreamReader(System.in));
         udpSocket = new DatagramSocket();
         serverAddress = InetAddress.getByName(serverDNSName);
         gson = new Gson();
+        fmt = NumberFormat.getInstance(new Locale("en", "US"));
     }
 
     void run() throws IOException {
@@ -75,7 +97,7 @@ class InventoryClient {
     private String getLine() throws IOException {
         while (true) {
             try {
-                System.out.print("Please enter an id:\n>");
+                System.out.print("Please enter an id:\n> ");
                 String line = sysIn.readLine();
                 if (line == null) continue;
 
@@ -130,7 +152,9 @@ class InventoryClient {
 
     private void parseResponse(String fromServer) {
         Computer computer = gson.fromJson(fromServer, Computer.class);
+        long elapsed = endTime - startTime;
+        String elapsedStr = fmt.format(elapsed);
         System.out.println("\nFOUND: " + computer);
-        System.out.print("  RTT of Query: " + (endTime - startTime) + " nanoseconds.\n\n");
+        System.out.print("  RTT of Query: " + elapsedStr + " nanoseconds.\n\n");
     }
 }
